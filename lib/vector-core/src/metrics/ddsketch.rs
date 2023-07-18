@@ -161,6 +161,7 @@ impl Default for Config {
 }
 
 /// A sketch bin.
+#[configurable_component] // PATCH
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct Bin {
     /// The bin index.
