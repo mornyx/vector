@@ -541,6 +541,7 @@ pub fn file_source(
         remove_after: config.remove_after_secs.map(Duration::from_secs),
         emitter: FileSourceInternalEventsEmitter,
         handle: tokio::runtime::Handle::current(),
+        drop_deleted_file_watcher: false,
     };
 
     let event_metadata = EventMetadata {

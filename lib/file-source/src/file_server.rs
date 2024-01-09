@@ -52,6 +52,7 @@ where
     pub remove_after: Option<Duration>,
     pub emitter: E,
     pub handle: tokio::runtime::Handle,
+    pub drop_deleted_file_watcher: bool,
 }
 
 /// `FileServer` as Source
@@ -225,6 +226,15 @@ where
                             self.emitter.emit_files_open(fp_map.len());
                         }
                     }
+                }
+                if self.drop_deleted_file_watcher {
+                    // Remove wacthers of deleted files.
+                    // This will drop all logs which are uncollected in these files.
+                    fp_map.values_mut().for_each(|watcher| {
+                        if !watcher.file_findable() {
+                            watcher.set_dead();
+                        }
+                    });
                 }
                 stats.record("discovery", start.elapsed());
             }

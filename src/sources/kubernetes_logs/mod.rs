@@ -777,6 +777,7 @@ impl Source {
             emitter: FileSourceInternalEventsEmitter,
             // A handle to the current tokio runtime
             handle: tokio::runtime::Handle::current(),
+            drop_deleted_file_watcher: true,
         };
 
         let (file_source_tx, file_source_rx) = futures::channel::mpsc::channel::<Vec<Line>>(2);
