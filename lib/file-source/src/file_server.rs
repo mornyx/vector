@@ -230,12 +230,17 @@ where
                 if self.drop_deleted_file_watcher {
                     // Remove wacthers of deleted files.
                     // This will drop all logs which are uncollected in these files.
+                    let mut first = true;
                     fp_map.values_mut().for_each(|watcher| {
-                        if !watcher.file_findable() {
+                        if !watcher.file_findable() && !first {
                             watcher.set_dead();
+                        }
+                        if first {
+                            first = false;
                         }
                     });
                 }
+
                 stats.record("discovery", start.elapsed());
             }
 
