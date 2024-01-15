@@ -232,9 +232,11 @@ where
                     // This will drop all logs which are uncollected in these files.
                     let mut removed_count = 0;
                     fp_map.values_mut().for_each(|watcher| {
-                        removed_count += 1;
-                        if !watcher.file_findable() && removed_count > 10 {
-                            watcher.set_dead();
+                        if !watcher.file_findable() {
+                            removed_count += 1;
+                            if removed_count > 10 {
+                                watcher.set_dead();
+                            }
                         }
                     });
                 }
