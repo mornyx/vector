@@ -230,17 +230,13 @@ where
                 if self.drop_deleted_file_watcher {
                     // Remove wacthers of deleted files.
                     // This will drop all logs which are uncollected in these files.
-                    let mut removed_count = 0;
                     fp_map.values_mut().for_each(|watcher| {
                         if !watcher.file_findable() {
-                            removed_count += 1;
-                            if removed_count > 10 {
-                                watcher.set_dead();
-                                warn!(
-                                    message = "O11y discard file.",
-                                    path = ?watcher.path,
-                                );
-                            }
+                            watcher.set_dead();
+                            warn!(
+                                message = "O11y discard file.",
+                                path = ?watcher.path,
+                            );
                         }
                     });
                 }
