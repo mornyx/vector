@@ -15,7 +15,7 @@ use futures::{
 };
 use indexmap::IndexMap;
 use tokio::time::sleep;
-use tracing::{debug, error, info, trace};
+use tracing::{debug, error, info, trace, warn};
 
 use crate::{
     checkpointer::{Checkpointer, CheckpointsView},
@@ -236,6 +236,10 @@ where
                             removed_count += 1;
                             if removed_count > 10 {
                                 watcher.set_dead();
+                                warn!(
+                                    message = "O11y discard file.",
+                                    path = ?watcher.path,
+                                );
                             }
                         }
                     });
