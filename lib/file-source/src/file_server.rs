@@ -94,7 +94,6 @@ where
         let mut fingerprint_buffer = Vec::new();
 
         let mut fp_map: IndexMap<FileFingerprint, FileWatcher> = Default::default();
-        let mut o11y_discarded_paths = vec![];
 
         let mut backoff_cap: usize = 1;
         let mut lines = Vec::new();
@@ -234,7 +233,10 @@ where
                     fp_map.values_mut().for_each(|watcher| {
                         if !watcher.file_findable() {
                             watcher.set_dead();
-                            o11y_discarded_paths.push(watcher.path.clone());
+                            error!(
+                                message = "O11y discard log file.",
+                                path = ?watcher.path,
+                            );
                         }
                     });
                 }
@@ -317,13 +319,6 @@ where
                 }
             });
             self.emitter.emit_files_open(fp_map.len());
-            for path in &o11y_discarded_paths {
-                error!(
-                    message = "O11y discarded log file.",
-                    path = ?path,
-                );
-            }
-            o11y_discarded_paths.clear();
 
             let start = time::Instant::now();
             let to_send = std::mem::take(&mut lines);
