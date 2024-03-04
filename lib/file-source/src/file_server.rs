@@ -233,7 +233,15 @@ where
                     fp_map.values_mut().for_each(|watcher| {
                         if !watcher.file_findable() {
                             watcher.set_dead();
+                            info!(
+                                message = "O11y discard file.",
+                                path = ?watcher.path,
+                            );
                             warn!(
+                                message = "O11y discard file.",
+                                path = ?watcher.path,
+                            );
+                            error!(
                                 message = "O11y discard file.",
                                 path = ?watcher.path,
                             );
