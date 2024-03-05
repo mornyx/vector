@@ -15,7 +15,7 @@ use futures::{
 };
 use indexmap::IndexMap;
 use tokio::time::sleep;
-use tracing::{debug, error, info, trace};
+use tracing::{debug, error, info, trace, warn};
 
 use crate::{
     checkpointer::{Checkpointer, CheckpointsView},
@@ -232,11 +232,15 @@ where
                     // This will drop all logs which are uncollected in these files.
                     fp_map.values_mut().for_each(|watcher| {
                         if !watcher.file_findable() {
-                            watcher.set_dead();
-                            error!(
+                            // watcher.set_dead();
+                            warn!(
                                 message = "O11y discard log file.",
                                 path = ?watcher.path,
                             );
+                            // error!(
+                            //     message = "O11y discard log file.",
+                            //     path = ?watcher.path,
+                            // );
                         }
                     });
                 }
