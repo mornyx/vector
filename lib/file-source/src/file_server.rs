@@ -15,7 +15,7 @@ use futures::{
 };
 use indexmap::IndexMap;
 use tokio::time::sleep;
-use tracing::{debug, error, info, trace};
+use tracing::{debug, error, info, trace, warn};
 
 use crate::{
     checkpointer::{Checkpointer, CheckpointsView},
@@ -296,6 +296,38 @@ where
             for (_, watcher) in &mut fp_map {
                 if !watcher.file_findable() && watcher.last_seen().elapsed() > self.rotate_wait {
                     watcher.set_dead();
+                }
+            }
+
+            let mut dead_file_path = None;
+            for (_, watcher) in &mut fp_map {
+                if !watcher.file_findable() {
+                    dead_file_path = Some(watcher.path.clone());
+                    break;
+                }
+            }
+            if let Some(path) = dead_file_path {
+                let disks = sysinfo::Disks::new_with_refreshed_list();
+                if let Some(disk) = disks
+                    .iter()
+                    .find(|disk| path.starts_with(disk.mount_point()))
+                {
+                    let usage_percent = (disk.total_space() - disk.available_space()) as f64
+                        / disk.total_space() as f64
+                        * 100.0;
+                    if usage_percent > 50.0 {
+                        let mut count = 0;
+                        for (_, watcher) in &mut fp_map {
+                            if !watcher.file_findable() {
+                                count += 1;
+                                watcher.set_dead();
+                            }
+                        }
+                        warn!(
+                            message = "Files dropped due to disk usage.",
+                            count = %count,
+                        );
+                    }
                 }
             }
 
