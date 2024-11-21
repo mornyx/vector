@@ -308,10 +308,22 @@ where
             }
             if let Some(path) = dead_file_path {
                 let disks = sysinfo::Disks::new_with_refreshed_list();
-                if let Some(disk) = disks
-                    .iter()
-                    .find(|disk| path.starts_with(disk.mount_point()))
-                {
+                let mut longest_mount_point_disk = None;
+                for disk in &disks {
+                    if path.starts_with(disk.mount_point()) {
+                        match longest_mount_point_disk {
+                            None => longest_mount_point_disk = Some(disk),
+                            Some(existing) => {
+                                if disk.mount_point().as_os_str().len()
+                                    > existing.mount_point().as_os_str().len()
+                                {
+                                    longest_mount_point_disk = Some(disk);
+                                }
+                            }
+                        }
+                    }
+                }
+                if let Some(disk) = longest_mount_point_disk {
                     let usage_percent = (disk.total_space() - disk.available_space()) as f64
                         / disk.total_space() as f64
                         * 100.0;
@@ -325,6 +337,8 @@ where
                         }
                         warn!(
                             message = "Files dropped due to disk usage.",
+                            disk = ?disk.mount_point(),
+                            usage_percent = %usage_percent,
                             count = %count,
                         );
                     }
