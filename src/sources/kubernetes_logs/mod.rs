@@ -257,7 +257,7 @@ pub struct Config {
 
     /// The threshold percentage of disk usage at which rotated files are dropped.
     #[serde(default = "default_drop_rotated_files_threshold")]
-    drop_rotated_files_threshold: f64,
+    drop_rotated_files_threshold: i32,
 }
 
 const fn default_read_from() -> ReadFromConfig {
@@ -558,7 +558,7 @@ struct Source {
     delay_deletion: Duration,
     include_file_metric_tag: bool,
     rotate_wait: Duration,
-    drop_rotated_files_threshold: f64,
+    drop_rotated_files_threshold: i32,
 }
 
 impl Source {
@@ -1038,8 +1038,8 @@ const fn default_rotate_wait() -> Duration {
     Duration::from_secs(u64::MAX / 2)
 }
 
-const fn default_drop_rotated_files_threshold() -> f64 {
-    50.0
+const fn default_drop_rotated_files_threshold() -> i32 {
+    50
 }
 
 // This function constructs the patterns we include for file watching, created

@@ -262,7 +262,7 @@ pub struct FileConfig {
 
     /// The threshold percentage of disk usage at which rotated files are dropped.
     #[serde(default = "default_drop_rotated_files_threshold")]
-    pub drop_rotated_files_threshold: f64,
+    pub drop_rotated_files_threshold: i32,
 }
 
 fn default_max_line_bytes() -> usize {
@@ -302,8 +302,8 @@ const fn default_rotate_wait() -> Duration {
 }
 
 
-const fn default_drop_rotated_files_threshold() -> f64 {
-    50.0
+const fn default_drop_rotated_files_threshold() -> i32 {
+    50
 }
 
 /// Configuration for how files should be identified.

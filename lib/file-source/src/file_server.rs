@@ -53,7 +53,7 @@ where
     pub emitter: E,
     pub handle: tokio::runtime::Handle,
     pub rotate_wait: Duration,
-    pub drop_rotated_files_threshold: f64,
+    pub drop_rotated_files_threshold: i32,
 }
 
 /// `FileServer` as Source
@@ -300,7 +300,8 @@ where
                 }
             }
 
-            if self.drop_rotated_files_threshold > 0.0 {
+            if self.drop_rotated_files_threshold > 0 {
+                let threshold = self.drop_rotated_files_threshold as f64;
                 let mut dead_file_path = None;
                 for (_, watcher) in &mut fp_map {
                     if !watcher.file_findable() {
@@ -329,7 +330,7 @@ where
                         let usage_percent = (disk.total_space() - disk.available_space()) as f64
                             / disk.total_space() as f64
                             * 100.0;
-                        if usage_percent >= self.drop_rotated_files_threshold {
+                        if usage_percent >= threshold {
                             let mut count = 0;
                             for (_, watcher) in &mut fp_map {
                                 if !watcher.file_findable() {
