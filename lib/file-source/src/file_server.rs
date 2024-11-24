@@ -53,6 +53,7 @@ where
     pub emitter: E,
     pub handle: tokio::runtime::Handle,
     pub rotate_wait: Duration,
+    pub drop_rotated_files_threshold: f64,
 }
 
 /// `FileServer` as Source
@@ -299,48 +300,50 @@ where
                 }
             }
 
-            let mut dead_file_path = None;
-            for (_, watcher) in &mut fp_map {
-                if !watcher.file_findable() {
-                    dead_file_path = Some(watcher.path.clone());
-                    break;
+            if self.drop_rotated_files_threshold > 0.0 {
+                let mut dead_file_path = None;
+                for (_, watcher) in &mut fp_map {
+                    if !watcher.file_findable() {
+                        dead_file_path = Some(watcher.path.clone());
+                        break;
+                    }
                 }
-            }
-            if let Some(path) = dead_file_path {
-                let disks = sysinfo::Disks::new_with_refreshed_list();
-                let mut longest_mount_point_disk = None;
-                for disk in &disks {
-                    if path.starts_with(disk.mount_point()) {
-                        match longest_mount_point_disk {
-                            None => longest_mount_point_disk = Some(disk),
-                            Some(existing) => {
-                                if disk.mount_point().as_os_str().len()
-                                    > existing.mount_point().as_os_str().len()
-                                {
-                                    longest_mount_point_disk = Some(disk);
+                if let Some(path) = dead_file_path {
+                    let disks = sysinfo::Disks::new_with_refreshed_list();
+                    let mut longest_mount_point_disk = None;
+                    for disk in &disks {
+                        if path.starts_with(disk.mount_point()) {
+                            match longest_mount_point_disk {
+                                None => longest_mount_point_disk = Some(disk),
+                                Some(existing) => {
+                                    if disk.mount_point().as_os_str().len()
+                                        > existing.mount_point().as_os_str().len()
+                                    {
+                                        longest_mount_point_disk = Some(disk);
+                                    }
                                 }
                             }
                         }
                     }
-                }
-                if let Some(disk) = longest_mount_point_disk {
-                    let usage_percent = (disk.total_space() - disk.available_space()) as f64
-                        / disk.total_space() as f64
-                        * 100.0;
-                    if usage_percent > 50.0 {
-                        let mut count = 0;
-                        for (_, watcher) in &mut fp_map {
-                            if !watcher.file_findable() {
-                                count += 1;
-                                watcher.set_dead();
+                    if let Some(disk) = longest_mount_point_disk {
+                        let usage_percent = (disk.total_space() - disk.available_space()) as f64
+                            / disk.total_space() as f64
+                            * 100.0;
+                        if usage_percent >= self.drop_rotated_files_threshold {
+                            let mut count = 0;
+                            for (_, watcher) in &mut fp_map {
+                                if !watcher.file_findable() {
+                                    count += 1;
+                                    watcher.set_dead();
+                                }
                             }
+                            warn!(
+                                message = "Rotated files dropped due to disk usage.",
+                                disk = ?disk.mount_point(),
+                                usage_percent = %usage_percent,
+                                count = %count,
+                            );
                         }
-                        warn!(
-                            message = "Files dropped due to disk usage.",
-                            disk = ?disk.mount_point(),
-                            usage_percent = %usage_percent,
-                            count = %count,
-                        );
                     }
                 }
             }

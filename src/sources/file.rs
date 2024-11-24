@@ -259,6 +259,10 @@ pub struct FileConfig {
     #[configurable(metadata(docs::type_unit = "seconds"))]
     #[serde(default = "default_rotate_wait", rename = "rotate_wait_secs")]
     pub rotate_wait: Duration,
+
+    /// The threshold percentage of disk usage at which rotated files are dropped.
+    #[serde(default = "default_drop_rotated_files_threshold")]
+    pub drop_rotated_files_threshold: f64,
 }
 
 fn default_max_line_bytes() -> usize {
@@ -295,6 +299,11 @@ fn default_line_delimiter() -> String {
 
 const fn default_rotate_wait() -> Duration {
     Duration::from_secs(u64::MAX / 2)
+}
+
+
+const fn default_drop_rotated_files_threshold() -> f64 {
+    50.0
 }
 
 /// Configuration for how files should be identified.
@@ -421,6 +430,7 @@ impl Default for FileConfig {
             log_namespace: None,
             internal_metrics: Default::default(),
             rotate_wait: default_rotate_wait(),
+            drop_rotated_files_threshold: default_drop_rotated_files_threshold(),
         }
     }
 }
@@ -574,6 +584,7 @@ pub fn file_source(
         emitter,
         handle: tokio::runtime::Handle::current(),
         rotate_wait: config.rotate_wait,
+        drop_rotated_files_threshold: config.drop_rotated_files_threshold,
     };
 
     let event_metadata = EventMetadata {
