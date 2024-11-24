@@ -1,3 +1,5 @@
+#![allow(unused)]
+
 use std::time::Duration;
 
 use metrics::{counter, decrement_gauge, gauge, increment_gauge, register_histogram, Histogram};
@@ -126,6 +128,6 @@ registered_event! {
     }
 
     fn emit(&self, duration: Duration) {
-        self.send_duration.record(duration);
+        // self.send_duration.record(duration);
     }
 }

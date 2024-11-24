@@ -1,3 +1,5 @@
+#![allow(unused)]
+
 use metrics::{register_counter, register_histogram, Counter, Histogram};
 use tracing::trace;
 
@@ -15,8 +17,8 @@ crate::registered_event!(
 
         trace!(message = "Events received.", count = %count, byte_size = %byte_size);
 
-        #[allow(clippy::cast_precision_loss)]
-        self.events_count.record(count as f64);
+        // #[allow(clippy::cast_precision_loss)]
+        // self.events_count.record(count as f64);
         self.events.increment(count as u64);
         self.event_bytes.increment(byte_size.get() as u64);
     }

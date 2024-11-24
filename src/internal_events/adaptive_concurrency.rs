@@ -1,3 +1,5 @@
+#![allow(unused)]
+
 use std::time::Duration;
 
 use metrics::{register_histogram, Histogram};
@@ -24,12 +26,12 @@ registered_event! {
     }
 
     fn emit(&self, data: AdaptiveConcurrencyLimitData) {
-        self.limit.record(data.concurrency as f64);
-        let reached_limit = data.reached_limit.then_some(1.0).unwrap_or_default();
-        self.reached_limit.record(reached_limit);
-        let back_pressure = data.had_back_pressure.then_some(1.0).unwrap_or_default();
-        self.back_pressure.record(back_pressure);
-        self.past_rtt_mean.record(data.past_rtt);
+        // self.limit.record(data.concurrency as f64);
+        // let reached_limit = data.reached_limit.then_some(1.0).unwrap_or_default();
+        // self.reached_limit.record(reached_limit);
+        // let back_pressure = data.had_back_pressure.then_some(1.0).unwrap_or_default();
+        // self.back_pressure.record(back_pressure);
+        // self.past_rtt_mean.record(data.past_rtt);
         // past_rtt_deviation is unrecorded
     }
 }
@@ -40,7 +42,7 @@ registered_event! {
     }
 
     fn emit(&self, in_flight: u64) {
-        self.in_flight.record(in_flight as f64);
+        // self.in_flight.record(in_flight as f64);
     }
 }
 
@@ -50,7 +52,7 @@ registered_event! {
     }
 
     fn emit(&self, rtt: Duration) {
-        self.observed_rtt.record(rtt);
+        // self.observed_rtt.record(rtt);
     }
 }
 
@@ -60,6 +62,6 @@ registered_event! {
     }
 
     fn emit(&self, rtt: Duration) {
-        self.averaged_rtt.record(rtt);
+        // self.averaged_rtt.record(rtt);
     }
 }
