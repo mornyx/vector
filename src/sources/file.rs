@@ -261,8 +261,12 @@ pub struct FileConfig {
     pub rotate_wait: Duration,
 
     /// The threshold percentage of disk usage at which rotated files are dropped.
-    #[serde(default = "default_drop_rotated_files_threshold")]
-    pub drop_rotated_files_threshold: i32,
+    #[serde(default = "default_drop_rotated_files_threshold_disk_percentage")]
+    pub drop_rotated_files_threshold_disk_percentage: i32,
+
+    /// The threshold count of rotated files at which rotated files are dropped.
+    #[serde(default = "default_drop_rotated_files_threshold_count")]
+    pub drop_rotated_files_threshold_count: i32,
 }
 
 fn default_max_line_bytes() -> usize {
@@ -301,9 +305,12 @@ const fn default_rotate_wait() -> Duration {
     Duration::from_secs(u64::MAX / 2)
 }
 
+const fn default_drop_rotated_files_threshold_disk_percentage() -> i32 {
+    60
+}
 
-const fn default_drop_rotated_files_threshold() -> i32 {
-    50
+const fn default_drop_rotated_files_threshold_count() -> i32 {
+    10
 }
 
 /// Configuration for how files should be identified.
@@ -430,7 +437,9 @@ impl Default for FileConfig {
             log_namespace: None,
             internal_metrics: Default::default(),
             rotate_wait: default_rotate_wait(),
-            drop_rotated_files_threshold: default_drop_rotated_files_threshold(),
+            drop_rotated_files_threshold_disk_percentage:
+                default_drop_rotated_files_threshold_disk_percentage(),
+            drop_rotated_files_threshold_count: default_drop_rotated_files_threshold_count(),
         }
     }
 }
@@ -584,7 +593,9 @@ pub fn file_source(
         emitter,
         handle: tokio::runtime::Handle::current(),
         rotate_wait: config.rotate_wait,
-        drop_rotated_files_threshold: config.drop_rotated_files_threshold,
+        drop_rotated_files_threshold_disk_percentage: config
+            .drop_rotated_files_threshold_disk_percentage,
+        drop_rotated_files_threshold_count: config.drop_rotated_files_threshold_count,
     };
 
     let event_metadata = EventMetadata {

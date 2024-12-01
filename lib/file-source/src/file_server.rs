@@ -53,7 +53,8 @@ where
     pub emitter: E,
     pub handle: tokio::runtime::Handle,
     pub rotate_wait: Duration,
-    pub drop_rotated_files_threshold: i32,
+    pub drop_rotated_files_threshold_disk_percentage: i32,
+    pub drop_rotated_files_threshold_count: i32,
 }
 
 /// `FileServer` as Source
@@ -300,50 +301,57 @@ where
                 }
             }
 
-            if self.drop_rotated_files_threshold > 0 {
-                let threshold = self.drop_rotated_files_threshold as f64;
+            if self.drop_rotated_files_threshold_disk_percentage > 0 {
+                let threshold_disk_percentage =
+                    self.drop_rotated_files_threshold_disk_percentage as f64;
                 let mut dead_file_path = None;
+                let mut rotated_file_count = 0;
                 for (_, watcher) in &mut fp_map {
                     if !watcher.file_findable() {
-                        dead_file_path = Some(watcher.path.clone());
-                        break;
+                        rotated_file_count += 1;
+                        if dead_file_path.is_none() {
+                            dead_file_path = Some(watcher.path.clone());
+                        }
                     }
                 }
-                if let Some(path) = dead_file_path {
-                    let disks = sysinfo::Disks::new_with_refreshed_list();
-                    let mut longest_mount_point_disk = None;
-                    for disk in &disks {
-                        if path.starts_with(disk.mount_point()) {
-                            match longest_mount_point_disk {
-                                None => longest_mount_point_disk = Some(disk),
-                                Some(existing) => {
-                                    if disk.mount_point().as_os_str().len()
-                                        > existing.mount_point().as_os_str().len()
-                                    {
-                                        longest_mount_point_disk = Some(disk);
+                if rotated_file_count >= self.drop_rotated_files_threshold_count {
+                    if let Some(path) = dead_file_path {
+                        let disks = sysinfo::Disks::new_with_refreshed_list();
+                        let mut longest_mount_point_disk = None;
+                        for disk in &disks {
+                            if path.starts_with(disk.mount_point()) {
+                                match longest_mount_point_disk {
+                                    None => longest_mount_point_disk = Some(disk),
+                                    Some(existing) => {
+                                        if disk.mount_point().as_os_str().len()
+                                            > existing.mount_point().as_os_str().len()
+                                        {
+                                            longest_mount_point_disk = Some(disk);
+                                        }
                                     }
                                 }
                             }
                         }
-                    }
-                    if let Some(disk) = longest_mount_point_disk {
-                        let usage_percent = (disk.total_space() - disk.available_space()) as f64
-                            / disk.total_space() as f64
-                            * 100.0;
-                        if usage_percent >= threshold {
-                            let mut count = 0;
-                            for (_, watcher) in &mut fp_map {
-                                if !watcher.file_findable() {
-                                    count += 1;
-                                    watcher.set_dead();
+                        if let Some(disk) = longest_mount_point_disk {
+                            let usage_percent = (disk.total_space() - disk.available_space())
+                                as f64
+                                / disk.total_space() as f64
+                                * 100.0;
+                            if usage_percent >= threshold_disk_percentage {
+                                let mut count = 0;
+                                for (_, watcher) in &mut fp_map {
+                                    if !watcher.file_findable() {
+                                        count += 1;
+                                        watcher.set_dead();
+                                    }
                                 }
+                                warn!(
+                                    message = "Rotated files dropped due to disk usage.",
+                                    disk = ?disk.mount_point(),
+                                    usage_percent = %usage_percent,
+                                    count = %count,
+                                );
                             }
-                            warn!(
-                                message = "Rotated files dropped due to disk usage.",
-                                disk = ?disk.mount_point(),
-                                usage_percent = %usage_percent,
-                                count = %count,
-                            );
                         }
                     }
                 }

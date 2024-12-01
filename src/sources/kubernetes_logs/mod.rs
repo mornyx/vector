@@ -256,8 +256,12 @@ pub struct Config {
     rotate_wait: Duration,
 
     /// The threshold percentage of disk usage at which rotated files are dropped.
-    #[serde(default = "default_drop_rotated_files_threshold")]
-    drop_rotated_files_threshold: i32,
+    #[serde(default = "default_drop_rotated_files_threshold_disk_percentage")]
+    drop_rotated_files_threshold_disk_percentage: i32,
+
+    /// The threshold count of rotated files at which rotated files are dropped.
+    #[serde(default = "default_drop_rotated_files_threshold_count")]
+    drop_rotated_files_threshold_count: i32,
 }
 
 const fn default_read_from() -> ReadFromConfig {
@@ -304,7 +308,9 @@ impl Default for Config {
             log_namespace: None,
             internal_metrics: Default::default(),
             rotate_wait: default_rotate_wait(),
-            drop_rotated_files_threshold: default_drop_rotated_files_threshold(),
+            drop_rotated_files_threshold_disk_percentage:
+                default_drop_rotated_files_threshold_disk_percentage(),
+            drop_rotated_files_threshold_count: default_drop_rotated_files_threshold_count(),
         }
     }
 }
@@ -558,7 +564,8 @@ struct Source {
     delay_deletion: Duration,
     include_file_metric_tag: bool,
     rotate_wait: Duration,
-    drop_rotated_files_threshold: i32,
+    drop_rotated_files_threshold_disk_percentage: i32,
+    drop_rotated_files_threshold_count: i32,
 }
 
 impl Source {
@@ -642,7 +649,9 @@ impl Source {
             delay_deletion,
             include_file_metric_tag: config.internal_metrics.include_file_tag,
             rotate_wait: config.rotate_wait,
-            drop_rotated_files_threshold: config.drop_rotated_files_threshold,
+            drop_rotated_files_threshold_disk_percentage: config
+                .drop_rotated_files_threshold_disk_percentage,
+            drop_rotated_files_threshold_count: config.drop_rotated_files_threshold_count,
         })
     }
 
@@ -678,7 +687,8 @@ impl Source {
             delay_deletion,
             include_file_metric_tag,
             rotate_wait,
-            drop_rotated_files_threshold,
+            drop_rotated_files_threshold_disk_percentage,
+            drop_rotated_files_threshold_count,
         } = self;
 
         let mut reflectors = Vec::new();
@@ -826,7 +836,8 @@ impl Source {
             // A handle to the current tokio runtime
             handle: tokio::runtime::Handle::current(),
             rotate_wait,
-            drop_rotated_files_threshold,
+            drop_rotated_files_threshold_disk_percentage,
+            drop_rotated_files_threshold_count,
         };
 
         let (file_source_tx, file_source_rx) = futures::channel::mpsc::channel::<Vec<Line>>(2);
@@ -1038,8 +1049,12 @@ const fn default_rotate_wait() -> Duration {
     Duration::from_secs(u64::MAX / 2)
 }
 
-const fn default_drop_rotated_files_threshold() -> i32 {
-    50
+const fn default_drop_rotated_files_threshold_disk_percentage() -> i32 {
+    60
+}
+
+const fn default_drop_rotated_files_threshold_count() -> i32 {
+    10
 }
 
 // This function constructs the patterns we include for file watching, created
