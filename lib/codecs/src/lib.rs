@@ -3,6 +3,7 @@
 
 #![deny(missing_docs)]
 #![deny(warnings)]
+#![allow(dead_code)]
 
 mod common;
 pub mod decoding;
