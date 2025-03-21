@@ -4,6 +4,7 @@
 #![deny(missing_docs)]
 #![deny(warnings)]
 #![allow(dead_code)]
+#![allow(deprecated)]
 
 mod common;
 pub mod decoding;

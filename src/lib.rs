@@ -18,6 +18,7 @@
 #![deny(clippy::disallowed_methods)] // [nursery] mark some functions as verboten
 #![deny(clippy::missing_const_for_fn)] // [nursery] valuable to the optimizer, but may produce false positives
 #![allow(dead_code)]
+#![allow(deprecated)]
 #![allow(unexpected_cfgs)]
 #![allow(dependency_on_unit_never_type_fallback)]
 
