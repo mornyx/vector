@@ -7,10 +7,7 @@ use futures::FutureExt;
 use http::{Request, Response};
 use hyper::Body;
 use std::{convert::Infallible, net::SocketAddr, time::Duration};
-use tonic::{
-    body::BoxBody,
-    transport::server::{NamedService, Server},
-};
+use tonic::{body::BoxBody, server::NamedService, transport::server::Server};
 use tower::Service;
 use tower_http::{
     classify::{GrpcErrorsAsFailures, SharedClassifier},
