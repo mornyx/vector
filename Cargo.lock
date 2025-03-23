@@ -9527,9 +9527,20 @@ checksum = "212d5dcb2a1ce06d81107c3d0ffa3121fe974b73f068c8282cb1c32328113b6c"
 dependencies = [
  "futures-util",
  "log",
- "rustls 0.21.8",
  "tokio",
- "tungstenite",
+ "tungstenite 0.20.1 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "tokio-tungstenite"
+version = "0.20.1"
+source = "git+https://github.com/mornyx/tokio-tungstenite?branch=extend-0.20.1#776fb4193126375bce3c03cd38df8b49a77d488c"
+dependencies = [
+ "futures-util",
+ "log",
+ "rustls 0.22.2",
+ "tokio",
+ "tungstenite 0.20.1 (git+https://github.com/mornyx/tungstenite-rs?branch=extend-0.20.1)",
 ]
 
 [[package]]
@@ -9987,6 +9998,24 @@ name = "tungstenite"
 version = "0.20.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9e3dac10fd62eaf6617d3a904ae222845979aec67c615d1c842b4002c7666fb9"
+dependencies = [
+ "byteorder",
+ "bytes 1.10.1",
+ "data-encoding",
+ "http 0.2.9",
+ "httparse",
+ "log",
+ "rand 0.8.5",
+ "sha1",
+ "thiserror 1.0.58",
+ "url",
+ "utf-8",
+]
+
+[[package]]
+name = "tungstenite"
+version = "0.20.1"
+source = "git+https://github.com/mornyx/tungstenite-rs?branch=extend-0.20.1#fcddcd6070ee24f679edf97c58f61a0d258aa3b7"
 dependencies = [
  "byteorder",
  "bytes 1.10.1",
@@ -10479,7 +10508,7 @@ dependencies = [
  "tokio-postgres",
  "tokio-stream",
  "tokio-test",
- "tokio-tungstenite",
+ "tokio-tungstenite 0.20.1 (git+https://github.com/mornyx/tokio-tungstenite?branch=extend-0.20.1)",
  "tokio-util",
  "toml",
  "tonic 0.11.0",
@@ -10521,7 +10550,7 @@ dependencies = [
  "serde_json",
  "tokio",
  "tokio-stream",
- "tokio-tungstenite",
+ "tokio-tungstenite 0.20.1 (git+https://github.com/mornyx/tokio-tungstenite?branch=extend-0.20.1)",
  "url",
  "uuid",
 ]
@@ -11026,7 +11055,7 @@ dependencies = [
  "serde_urlencoded",
  "tokio",
  "tokio-stream",
- "tokio-tungstenite",
+ "tokio-tungstenite 0.20.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "tokio-util",
  "tower-service",
  "tracing 0.1.40",
